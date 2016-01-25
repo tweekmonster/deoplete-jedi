@@ -1,6 +1,7 @@
 import os
 import re
 import jedi
+import neovim
 
 from .base import Base
 
@@ -8,6 +9,7 @@ from .base import Base
 class Source(Base):
 
     def __init__(self, vim):
+        self.vim = vim
         Base.__init__(self, vim)
 
         self.name = 'jedi'
@@ -55,6 +57,8 @@ class Source(Base):
         return jedi.Script(source, row, column, buf_path, encoding)
 
     def completions(self, findstart, base):
+        self.vim.call('rpcnotify', self.vim.vars['deoplete#source#jedi#channel_id'],
+                      'deoplete_source_jedi_buffer')
         row, column = self.vim.current.window.cursor
 
         if findstart == 1:
@@ -63,13 +67,7 @@ class Source(Base):
         else:
             # jedi-vim style? or simple?
             # source = '\n'.join(self.vim.current.buffer[:])
-            source = ''
-            for i, line in enumerate(self.vim.current.buffer):
-                if i == row - 1:
-                    source += line[:column] + str(base) + line[column:]
-                else:
-                    source += line
-                source += '\n'
+            source = self.vim.vars['deoplete#source#jedi#buffer']
 
             script = self.get_script(source=source, column=column)
             completions = script.completions()
