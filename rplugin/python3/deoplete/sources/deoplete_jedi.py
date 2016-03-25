@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import glob
 
 from deoplete.sources.base import Base
@@ -12,16 +13,13 @@ from jedi.evaluate import sys_path
 from jedi.evaluate import compiled
 
 
-_old_get_sys_path = sys_path.get_sys_path
-
-
 def _get_sys_path():
     venv = os.getenv('VIRTUAL_ENV', '')
     if venv:
         found = glob.glob(os.path.join(venv, 'lib/**/site-packages'))
         if found:
             return found
-    return _old_get_sys_path()
+    return [p for p in sys.path if p != ""]
 
 
 compiled.get_sys_path = _get_sys_path
